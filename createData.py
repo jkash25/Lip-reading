@@ -34,12 +34,15 @@ from keras.layers import BatchNormalization
 from keras.callbacks import CSVLogger, ModelCheckpoint, EarlyStopping
 import matplotlib.pyplot as plt
 
-
+words = ['Begin','Choose','Connection','Navigation','Next', 'Previous', 'Start','Stop','Hello','Web']
+words_di = {i:words[i] for i in range(len(words))}
+people = ['Jai01','Jai02','Jai03','Jai04','Jai05','Jai06','Jai07','Jai08','Jai09','Jai10']
+data_types = ['words']
 folder_nums = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"]
 instances = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"]
-starting = "C:\\Users\\Jai K\\CS Stuff\\Python\\ISR Project\\self_training\\words\\"
+starting = "C:\\Users\\Jai K\\CS Stuff\\Python\\ISR Project\\self_training\\"
+tempStarting = "C:\\Users\\Jai K\\CS Stuff\\Python\\ISR Project\\tempframes\\"
 winname = "Recording Started"
-blank_image2 = 255 * np.ones(shape=[50, 330, 3], dtype=np.uint8)
 words = [
     "Begin",
     "Choose",
@@ -57,6 +60,7 @@ words_di = {i: words[i] for i in range(len(words))}
 
 
 def capture_split_for_self_training(word, iteration):
+    blank_image2 = 255 * np.ones(shape=[200, 600, 3], dtype=np.uint8)
     fpsLimit = 0.1
     capture = cv2.VideoCapture(0)
     codec = cv2.VideoWriter_fourcc(*"XVID")
@@ -90,11 +94,12 @@ def capture_split_for_self_training(word, iteration):
             if key % 256 == 27:
                 break
             elif key % 256 == 32:
+                
                 image = cv2.putText(
                     blank_image2,
                     "Say the word: " + word + " Iteration: " + str(iteration) + "/10",
-                    (10, 10),
-                    fontScale=1,
+                    (0, 100),
+                    fontScale=0.5,
                     color=(0, 0, 255),
                     fontFace=cv2.FONT_HERSHEY_TRIPLEX,
                 )
@@ -135,10 +140,11 @@ def capture_split_for_self_training(word, iteration):
     failed = 0
     while True:
         success, frame = video.read()
-        if success:
+        if success and frameNr<10:
             cv2.imwrite(
-                f"C:\\Users\\Jai K\\CS Stuff\\Python\\ISR Project\\tempframes\\frame{frameNr}.jpg", frame
-            )
+                f"C:\\Users\\Jai K\\CS Stuff\\Python\\ISR Project\\tempframes\\frame00{frameNr}.jpg", frame)
+        elif success and frameNr>=10:
+            cv2.imwrite(f"C\\Users\\Jai K\\CS Stuff\\Python\\ISR Project\\tempframes\\frame0{frameNr}.jpg",frame)
         else:
             break
         frameNr += 1
@@ -177,24 +183,35 @@ def general_crop_for_self_training(path):
     return resized_cropped
 
 def make_dirs():
-    for num in folder_nums:
-        for instance in instances:
-            os.mkdir(starting + num + "\\" + instance)
+    for person in people:
+        for data_type in data_types:
+            for num in folder_nums:
+                for instance in instances:
+                    os.mkdir(starting +person+ "\\"+data_type+ "\\"+num + "\\" + instance)
 
 
-def make():
-    for word_index, folder_num in enumerate(folder_nums):
-        word = words_di.get(word_index)
-        print('Word: ',word)
+def make(person,word_to_create): # pass in begin, navigation, or whichever word.
+
+    folder_number  = words.index(word_to_create)
+    word = words[folder_number] 
+    if folder_number==9:
+        folder_number =10
+    else:
+        folder_number = '0'+str(folder_number+1)
+
+    
         for instance_index, instance in enumerate(instances):
-            iteration = instance_index
-            capture_split_for_self_training(word, iteration)
+            shutil.rmtree("C:\\Users\\Jai K\\CS Stuff\\Python\\ISR Project\\self_training\\"+person+"\\words"+"\\"+folder_number+"\\"+instance)
+            os.mkdir("C:\\Users\\Jai K\\CS Stuff\\Python\\ISR Project\\self_training\\"+person+"\\words"+"\\"+folder_number+"\\"+instance)
+            #print('Instance index: ',instance_index)
+            print("Instance: "+instance)
+            #iteration = instance_index
+            capture_split_for_self_training(word, instance)
             for frame in os.listdir("C:\\Users\\Jai K\\CS Stuff\\Python\\ISR Project\\tempframes"):
-                img = general_crop_for_self_training(frame)
-                cv2.imwrite("C:\\Users\\Jai K\\CS Stuff\\Python\\ISR Project\\self_training"+'\\'+folder_num+'\\'+instance,img)
+                #print(tempStarting+frame)
+                img = general_crop_for_self_training(tempStarting+frame)
+                cv2.imwrite("C:\\Users\\Jai K\\CS Stuff\\Python\\ISR Project\\self_training\\"+person+"\\words\\"+folder_number+'\\'+instance+'\\'+frame,img)
 
 
 
-make() 
-
-#test push
+make("Jai01","Begin")
