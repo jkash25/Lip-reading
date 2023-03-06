@@ -1,4 +1,3 @@
-
 model = Sequential()
 model.add(Conv3D(32, (3, 3, 3), strides = 1, input_shape=(10, 100, 100, 1), activation='relu', padding='valid'))
 model.add(MaxPooling3D(pool_size=(2, 2, 2), strides=2))
